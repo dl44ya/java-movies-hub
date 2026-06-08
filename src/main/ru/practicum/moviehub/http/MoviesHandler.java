@@ -54,7 +54,7 @@ public class MoviesHandler extends BaseHttpHandler {
                 handleDeleteMovie(ex);
                 break;
             default:
-                sendErrorJson(ex, 405, gson.toJson(new ErrorResponse(errorMessage405)));
+                sendJson(ex, 405, gson.toJson(new ErrorResponse(errorMessage405)));
         }
     }
 
@@ -68,19 +68,19 @@ public class MoviesHandler extends BaseHttpHandler {
             int id = Integer.parseInt(path[2]);
             Movie movie = moviesStore.getMovieById(id);
             if (movie == null) {
-                sendErrorJson(ex, 404, gson.toJson(new ErrorResponse(errorMessage404)));
+                sendJson(ex, 404, gson.toJson(new ErrorResponse(errorMessage404)));
             } else {
                 sendJson(ex, 200, gson.toJson(moviesStore.getMovieById(id)));
             }
         } catch (NumberFormatException e) {
-            sendErrorJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Id)));
+            sendJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Id)));
         }
     }
 
     private void handleGetMoviesByYear(HttpExchange ex) throws IOException {
         String query = ex.getRequestURI().getQuery();
         if (query == null) {
-            sendErrorJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Year)));
+            sendJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Year)));
         } else {
             try {
                 String[] queryParts = query.split("=");
@@ -88,7 +88,7 @@ public class MoviesHandler extends BaseHttpHandler {
                 List<Movie> movies = moviesStore.getMoviesByYear(year);
                 sendJson(ex, 200, gson.toJson(movies));
             } catch (NumberFormatException e) {
-                sendErrorJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Year)));
+                sendJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Year)));
             }
         }
     }
@@ -98,24 +98,24 @@ public class MoviesHandler extends BaseHttpHandler {
         List<String> contentTypeValues = ex.getRequestHeaders().get("Content-type");
 
         if (contentTypeValues == null || !contentTypeValues.contains("application/json; charset=UTF-8")) {
-            sendErrorJson(ex, 415, gson.toJson(new ErrorResponse(errorMessage415)));
+            sendJson(ex, 415, gson.toJson(new ErrorResponse(errorMessage415)));
         } else {
             JsonElement jsonElement = JsonParser.parseString(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8));
             JsonObject jsonObject = jsonElement.getAsJsonObject();
 
             if (!jsonObject.has("title") || !jsonObject.has("year") || jsonObject.isEmpty()) {
-                sendErrorJson(ex, 415, gson.toJson(new ErrorResponse(errorMessage415)));
+                sendJson(ex, 415, gson.toJson(new ErrorResponse(errorMessage415)));
             } else {
                 String title = jsonObject.get("title").getAsString();
                 int year = jsonObject.get("year").getAsInt();
 
                 if (title == null || title.trim().isEmpty() || title.length() > 100) {
-                    sendErrorJson(ex, 422, gson.toJson(
+                    sendJson(ex, 422, gson.toJson(
                             new ErrorResponse(errorMessage422, new String[]{titleErrorDetails})));
                     return;
                 }
                 if (year < 1888 || year > 2027) {
-                    sendErrorJson(ex, 422, gson.toJson(
+                    sendJson(ex, 422, gson.toJson(
                             new ErrorResponse(errorMessage422, new String[]{yearErrorDetails})));
                     return;
                 }
@@ -133,13 +133,13 @@ public class MoviesHandler extends BaseHttpHandler {
         try {
             int id = Integer.parseInt(pathParts[2]);
             if (moviesStore.getMoviesStore().get(id) == null) {
-                sendErrorJson(ex, 404, gson.toJson(new ErrorResponse(errorMessage404)));
+                sendJson(ex, 404, gson.toJson(new ErrorResponse(errorMessage404)));
             } else {
                 moviesStore.deleteMovie(id);
                 sendNoContent(ex);
             }
         } catch (NumberFormatException e) {
-            sendErrorJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Id)));
+            sendJson(ex, 400, gson.toJson(new ErrorResponse(errorMessage400Id)));
         }
     }
 
